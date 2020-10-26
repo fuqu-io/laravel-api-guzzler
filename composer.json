@@ -1,0 +1,36 @@
+{
+  "name": "fuqu-io/laravel-api-guzzler",
+  "description": "Laravel package boilerplate.",
+  "keywords": [
+    "laravel",
+    "package"
+  ],
+  "type": "laravel",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Tarek Adam",
+      "email": "tarek@fuqu.io"
+    }
+  ],
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "FuquIo\\ApiGuzzler\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "FuquIo\\Test\\": "tests/"
+    }
+  },
+  "require": {},
+  "extra": {
+    "laravel": {
+      "providers": [
+        "FuquIo\\ApiGuzzler\\ServiceProvider",
+        "FuquIo\\ApiGuzzler\\EventServiceProvider"
+      ]
+    }
+  }
+}
