@@ -6,17 +6,18 @@ use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Psr\Http\Message\ResponseInterface;
 
-abstract class Client{
+abstract class Client
+{
 	
 	protected $guzzle;
-	private $last_call = ['name' => '', 'args' => []];
-	public $last_json = '';
+	private   $last_call = ['name' => '', 'args' => []];
+	public    $last_json = '';
 	
 	public $status = 205;
-	public $datum = null;
+	public $datum  = null;
 	
-	public $chunk = [];
-	public $record = [];
+	public $chunk   = [];
+	public $record  = [];
 	public $records = [];
 	
 	/**
@@ -26,10 +27,11 @@ abstract class Client{
 	 * @return Client
 	 * @throws \Exception
 	 */
-	public function __call($name, $arguments){
+	public function __call($name, $arguments)
+	{
 		$this->last_call = ['name' => $name, 'args' => $arguments];
 		
-		$params = (!empty($arguments[0])) ? $arguments[0]:[];
+		$params = (!empty($arguments[0])) ? $arguments[0] : [];
 		
 		if(!empty($arguments[1]) and is_array($arguments[1])){
 			$params = ['data' => $params];
@@ -76,6 +78,20 @@ abstract class Client{
 			throw $exception;
 		}
 		
+		if($this->status !== 200){
+			throw new \Exception('Unable to parse 3rd party data.', $this->status);
+		}
+		
+		switch(true){
+			case (!empty($this->record)):
+				return $this->record;
+			
+			case (!empty($this->records)):
+				return $this->records;
+			
+			default:
+				return null;
+		}
 	}
 	
 	/**
@@ -83,7 +99,8 @@ abstract class Client{
 	 *
 	 * @return mixed|null
 	 */
-	public function __get($name){
+	public function __get($name)
+	{
 		if(!empty($this->$name)){
 			return $this->$name;
 		}
@@ -107,9 +124,10 @@ abstract class Client{
 	
 	/**
 	 * @param ResponseInterface $result
-	 * @param array             $route_info
+	 * @param array $route_info
 	 */
-	private function setStatusAndContent(ResponseInterface $result, array $route_info){
+	private function setStatusAndContent(ResponseInterface $result, array $route_info)
+	{
 		$this->status  = $result->getStatusCode();
 		$this->chunk   = [];
 		$this->record  = [];
@@ -118,15 +136,26 @@ abstract class Client{
 		try{
 			$this->datum = $result->getBody();
 			
-			$this->datum = (!empty($this->datum)) ? json_decode($this->datum, true):null;
+			$this->datum = (!empty($this->datum)) ? json_decode($this->datum, true) : null;
 			if(json_last_error() !== JSON_ERROR_NONE){
 				throw new \Exception('Could not read response.');
 			}
 			
 			switch(true){
-				
 				case (!empty($route_info['target'])):
-				
+					$found = collect(Arr::get($this->datum, $route_info['target']))
+						->recursive();
+					switch(true){
+						case !!!($found->count()):
+							$this->status = 404;
+						break;
+						case ($found->count() >= 2):
+							$this->records = $found;
+						break;
+						default:
+							$this->record = $found;
+						break;
+					}
 				break;
 				
 				default:
@@ -145,7 +174,8 @@ abstract class Client{
 	 * @return array
 	 * @internal
 	 */
-	public function getLastCall(){
+	public function getLastCall()
+	{
 		return $this->last_call;
 	}
 }
