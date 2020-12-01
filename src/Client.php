@@ -143,8 +143,7 @@ abstract class Client
 			
 			switch(true){
 				case (!empty($route_info['target'])):
-					$found = collect(Arr::get($this->datum, $route_info['target']))
-						->recursive();
+					$found = collect(Arr::get($this->datum, $route_info['target']));
 					switch(true){
 						case !!!($found->count()):
 							$this->status = 404;
