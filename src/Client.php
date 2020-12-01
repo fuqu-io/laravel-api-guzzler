@@ -78,11 +78,13 @@ abstract class Client
 			throw $exception;
 		}
 		
-		if($this->status !== 200){
+		
+		if(!in_array($this->status, [200, 404])){
 			throw new \Exception('Unable to parse 3rd party data.', $this->status);
 		}
 		
 		switch(true){
+			
 			case (!empty($this->record)):
 				return $this->record;
 			
